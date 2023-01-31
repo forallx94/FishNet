@@ -53,13 +53,16 @@ class Customcifar10(Dataset):
             label = self.target_transform(label)
         return image, label
 
+    
 
 def main():
     args = parser.parse_args()
 
     transform = transforms.Compose(
         [transforms.ToTensor(),
-        transforms.Normalize((-0.017200625, -0.035683163, -0.10693816), (0.40440425, 0.39863086, 0.40172696)) # train 데이터 평균 (R,G,B), 분산 (R,G,B) 값
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        transforms.Normalize((-0.017200625, -0.035683163, -0.10693816), (0.40440425, 0.39863086, 0.40172696)) , # train 데이터에 0.5 정규화 적용 후 (R, G, B) 평균,분산
+        transforms.RandomHorizontalFlip() , # augmentaiotn horizontalflip
         ])
 
     batch_size = 64
@@ -113,7 +116,7 @@ def main():
 
             # 통계를 출력합니다.
             running_loss += loss.item()
-            if i % 200 == 199:    # print every 2000 mini-batches
+            if i % 200 == 199:    # print every 200 mini-batches
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
                 running_loss = 0.0
 

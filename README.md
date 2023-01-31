@@ -15,3 +15,5 @@ FishNet 구현 시도
 * [senet.pytorch](https://github.com/moskomule/senet.pytorch/blob/8cb2669fec6fa344481726f9199aa611f08c3fbd/senet/se_resnet.py#L46)
 
 * [Image normalization](https://teddylee777.github.io/pytorch/torchvision-transform/)
+* [PCA Color Augmentation](https://github.com/albumentations-team/albumentations/blob/7e49d472b451c4f25ae74d1a67503c8b3313eaf0/albumentations/augmentations/functional.py#L1091)
+* [pytorch transforms 구조](https://pytorch.org/vision/stable/_modules/torchvision/transforms/transforms.html#Compose)
