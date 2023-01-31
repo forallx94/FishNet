@@ -56,6 +56,7 @@ class Bottleneck(nn.Module):
         dilation: int = 1,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
     ) -> None:
+
         super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -147,6 +148,89 @@ class SEBasicBlock(nn.Module):
         return out
 
 
+class URblock(nn.Module):
+    def __init__(
+        self,
+        inplanes: int,
+        stride: int = 1,
+        dilation: int = 1,
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+    ) -> None:
+        super().__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        width = inplanes // 4
+        self.bn1 = norm_layer(inplanes)
+        self.conv1 = conv1x1(inplanes, width)
+        self.bn2 = norm_layer(width)
+        self.conv2 = conv3x3(width, width, stride, dilation)
+        self.bn3 = norm_layer(width)
+        self.conv3 = conv1x1(width, width)
+        self.relu = nn.ReLU(inplace=True)
+        self.up = nn.Upsample(scale_factor=2, mode='nearest')
+
+    def forward(self, x):
+        identity = x
+
+        out = self.bn1(x)
+        out = self.relu(out)
+        out = self.conv1(out)
+
+        out = self.bn2(out)
+        out = self.relu(out)
+        out = self.conv2(out)
+
+        out = self.bn3(out)
+        out = self.relu(out)
+        out = self.conv3(out)
+
+        n,c,h,w = x.size()
+        identity = x.reshape(n, c//4, 4, h, w).sum(2).view(n, c//4, h, w)
+
+        out += identity
+        out = self.up(out)
+        return out
+
+class DRblock(nn.Module):
+    def __init__(
+        self,
+        inplanes: int,
+        stride: int = 1,
+        dilation: int = 1,
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+    ) -> None:
+        super().__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        width = inplanes
+        self.bn1 = norm_layer(inplanes)
+        self.conv1 = conv1x1(inplanes, width)
+        self.bn2 = norm_layer(width)
+        self.conv2 = conv3x3(width, width, stride, dilation)
+        self.bn3 = norm_layer(width)
+        self.conv3 = conv1x1(width, width)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+
+    def forward(self, x):
+        identity = x
+
+        out = self.bn1(x)
+        out = self.relu(out)
+        out = self.conv1(out)
+
+        out = self.bn2(out)
+        out = self.relu(out)
+        out = self.conv2(out)
+
+        out = self.bn3(out)
+        out = self.relu(out)
+        out = self.conv3(out)
+
+        out += identity
+        out = self.maxpool(out)
+        return out
+
 class FishNet(nn.Module):
     def __init__(
         self,
@@ -184,15 +268,31 @@ class FishNet(nn.Module):
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.layer1 = self._make_tail_layer(block, 64, layers[0])
-        self.layer2 = self._make_tail_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_tail_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
 
         self.senet = SEBasicBlock(256, 256)
-        self.up = nn.Upsample(scale_factor=2, mode='nearest') # cifar10
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest') # cifar10의 경우 2
 
-        self.fc = nn.Linear(256 * block.expansion, num_classes)
+        self.layer4 = self._make_layer(block, 256, layers[2], stride=1, dilate=replace_stride_with_dilation[1])
+        self.urlayer1 = URblock(256*2, stride=1, dilation=self.dilation)
+        self.inplanes = 128
+        self.layer5 = self._make_layer(block, 128, layers[1], stride=1, dilate=replace_stride_with_dilation[0])
+        self.urlayer2 = URblock(128*2, stride=1, dilation=self.dilation)
+        self.inplanes = 64
+
+        self.layer6 = self._make_layer(block, 64, layers[0], stride=1)
+        self.inplanes = 128
+        self.drlayer1 = DRblock(128, stride=1, dilation=self.dilation)
+        self.layer7 = self._make_layer(block, 128, layers[1], stride=1, dilate=replace_stride_with_dilation[0])
+        self.inplanes = 256
+        self.drlayer2 = DRblock(256, stride=1, dilation=self.dilation)
+        self.layer8 = self._make_layer(block, 256, layers[2], stride=1, dilate=replace_stride_with_dilation[1])
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -201,7 +301,7 @@ class FishNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def _make_tail_layer(
+    def _make_layer(
         self,
         block: Type[Bottleneck],
         planes: int,
@@ -244,48 +344,7 @@ class FishNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _make_body_layer(
-        self,
-        block: Type[Bottleneck],
-        planes: int,
-        blocks: int,
-        stride: int = 1,
-        dilate: bool = False,
-    ) -> nn.Sequential:
 
-        norm_layer = self._norm_layer
-        downsample = None
-        previous_dilation = self.dilation
-        if dilate:
-            self.dilation *= stride
-            stride = 1
-            
-        if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
-                norm_layer(planes * block.expansion),
-            )
-
-        layers = []
-        layers.append(
-            block(
-                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
-            )
-        )
-        self.inplanes = planes * block.expansion
-        for _ in range(1, blocks):
-            layers.append(
-                block(
-                    self.inplanes,
-                    planes,
-                    groups=self.groups,
-                    base_width=self.base_width,
-                    dilation=self.dilation,
-                    norm_layer=norm_layer,
-                )
-            )
-
-        return nn.Sequential(*layers)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
         x = self.conv1(x)
@@ -300,12 +359,31 @@ class FishNet(nn.Module):
         tail_4 = self.avgpool(tail_3)
 
         # SENet
-        up = self.senet(tail_4)
-        up = self.up(up)
+        upsamp = self.senet(tail_4)
+        upsamp = self.upsample(upsamp)
 
         # body
+        body_1 = self.layer4(upsamp)
+        body_1_up = torch.cat((body_1, tail_3),1)
+        body_1_up = self.urlayer1(body_1_up)
 
-        head_4 = self.avgpool(up)
+        body_2 = self.layer5(body_1_up)
+        body_2_up = torch.cat((body_2, tail_2),1)
+        body_2_up = self.urlayer2(body_2_up)
+
+        # head
+        head_1 = self.layer6(body_2_up)
+        head_1_down = torch.cat((head_1, body_2_up) , 1)
+        head_1_down = self.drlayer1(head_1_down)
+
+        head_2 = self.layer7(head_1_down)
+        head_2_down = torch.cat((head_2, body_2) , 1)
+        head_2_down = self.drlayer2(head_2_down)
+
+        head_3 = self.layer8(head_2_down)
+        head_3_down = torch.cat((head_3, body_1) , 1)
+
+        head_4 = self.avgpool(head_3_down)
 
         x = torch.flatten(head_4, 1)
         x = self.fc(x)
@@ -406,4 +484,3 @@ import pytorch_model_summary
 import torch
 
 print(pytorch_model_summary.summary(net, torch.zeros(1,3,32,32).cuda(), max_depth=None, show_parent_layers=True,show_input=True))
-breakpoint()

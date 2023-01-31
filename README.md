@@ -15,5 +15,3 @@ FishNet 구현 시도
 
 * [Pytorch ResNet](https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L108)
 * [senet.pytorch](https://github.com/moskomule/senet.pytorch/blob/8cb2669fec6fa344481726f9199aa611f08c3fbd/senet/se_resnet.py#L46)
-
-* [UR-block TORCH.TENSOR.INDEX_ADD_](https://pytorch.org/docs/stable/generated/torch.Tensor.index_add_.html#torch.Tensor.index_add_)
