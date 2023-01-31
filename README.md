@@ -2,8 +2,6 @@
 
 FishNet 구현 시도
 
-* CNN.ipynb : Dataloader 생성 및 CNN 기본 모델 생성
-* ResNet.Ipynb : Identity Mappings in Deep Residual Networks 에서 제시된 변형 ResNet50 구현
 
 # Reference
 * [FishNet: A Versatile Backbone for Image, Region, and Pixel Level Predictio](https://arxiv.org/pdf/1901.03495.pdf)
@@ -15,3 +13,5 @@ FishNet 구현 시도
 
 * [Pytorch ResNet](https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L108)
 * [senet.pytorch](https://github.com/moskomule/senet.pytorch/blob/8cb2669fec6fa344481726f9199aa611f08c3fbd/senet/se_resnet.py#L46)
+
+* [Image normalization](https://teddylee777.github.io/pytorch/torchvision-transform/)
