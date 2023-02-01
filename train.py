@@ -14,9 +14,11 @@ import torch.optim as optim
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', choices = ['CNN' , 'ResNet', 'FishNet'])
-parser.add_argument('--epochs', default=100)
+parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--save_path', type=str)
 
+args = parser.parse_args()
 
 class Customcifar10(Dataset):
     def __init__(self, data_dir_list , transform=None, target_transform=None):
@@ -53,10 +55,8 @@ class Customcifar10(Dataset):
             label = self.target_transform(label)
         return image, label
 
-    
 
 def main():
-    args = parser.parse_args()
 
     transform = transforms.Compose(
         [transforms.ToTensor(),
@@ -65,16 +65,11 @@ def main():
         transforms.RandomHorizontalFlip() , # augmentaiotn horizontalflip
         ])
 
-    batch_size = 64
+    batch_size = args.batch_size
 
     train_data_dir = [f'./cifar-10-python/data_batch_{i}' for i in range(1,6)]
-    test_data_dir = [f'./cifar-10-python/test_batch']
-
     train_data = Customcifar10(train_data_dir , transform)
-    test_data = Customcifar10(test_data_dir, transform)
-
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
     classes = ('plane', 'car', 'bird', 'cat',
             'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
@@ -94,10 +89,12 @@ def main():
     net = net.cuda()
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=0.0001)
+    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+
 
     for epoch in range(args.epochs):   # 데이터셋을 수차례 반복합니다.
-
+        scheduler.step()
         running_loss = 0.0
         for i, data in enumerate(train_dataloader, 0):
             # [inputs, labels]의 목록인 data로부터 입력을 받은 후;
@@ -117,7 +114,7 @@ def main():
             # 통계를 출력합니다.
             running_loss += loss.item()
             if i % 200 == 199:    # print every 200 mini-batches
-                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 200:.3f}')
                 running_loss = 0.0
 
     print('Finished Training')

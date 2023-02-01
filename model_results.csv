@@ -1,0 +1,56 @@
+Model,Class,Error rate (%)
+cnn_100,Top-1 Error (%),69
+cnn_100,plane,41.4
+cnn_100,car,71.2
+cnn_100,bird,4.2
+cnn_100,cat,11.2
+cnn_100,deer,7.8
+cnn_100,dog,18.4
+cnn_100,frog,19.8
+cnn_100,horse,37.9
+cnn_100,ship,56.5
+cnn_100,truck,44.0
+resnet_100,Top-1 Error (%),22
+resnet_100,plane,83.3
+resnet_100,car,88.2
+resnet_100,bird,70.3
+resnet_100,cat,61.1
+resnet_100,deer,74.3
+resnet_100,dog,67.5
+resnet_100,frog,82.9
+resnet_100,horse,83.9
+resnet_100,ship,86.6
+resnet_100,truck,82.7
+resnet_200,Top-1 Error (%),22
+resnet_200,plane,83.2
+resnet_200,car,87.9
+resnet_200,bird,72.8
+resnet_200,cat,60.6
+resnet_200,deer,76.0
+resnet_200,dog,68.1
+resnet_200,frog,83.8
+resnet_200,horse,83.9
+resnet_200,ship,87.2
+resnet_200,truck,83.7
+fishnet_100,Top-1 Error (%),27
+fishnet_100,plane,79.3
+fishnet_100,car,84.2
+fishnet_100,bird,63.6
+fishnet_100,cat,57.8
+fishnet_100,deer,69.3
+fishnet_100,dog,61.9
+fishnet_100,frog,80.9
+fishnet_100,horse,77.1
+fishnet_100,ship,83.6
+fishnet_100,truck,78.1
+fishnet_200,Top-1 Error (%),27
+fishnet_200,plane,78.6
+fishnet_200,car,83.6
+fishnet_200,bird,64.3
+fishnet_200,cat,55.5
+fishnet_200,deer,69.3
+fishnet_200,dog,61.2
+fishnet_200,frog,81.9
+fishnet_200,horse,78.6
+fishnet_200,ship,85.0
+fishnet_200,truck,80.7
