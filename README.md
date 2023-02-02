@@ -1,13 +1,9 @@
 # FishNet: A Versatile Backbone for Image, Region, and Pixel Level Prediction
 
 Fishnet 모델 구현 시도  
-제작 과정에서 비교군으로 두 가지 모델 설정  
+비교군으로 두 가지 모델(CNN,ResNet) 설정  
 
-CNN : [Pytorch tutorial](https://tutorials.pytorch.kr/beginner/blitz/cifar10_tutorial.html)에서 제공된 간단한 CNN 모델  
-Bottleneck ResNet18 : 기존의 [Resnet18](https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L166) 의 basic block 대신 bottleneck block 을 적용  
-Fishnet : 구현한 Fishnet 
-
-
+## 폴더 파일 설명
 | *폴더 / 파일* | *설명* |
 |:-----------------:|:--------|
 | cifar-10-python | 데이터셋 경로 |
@@ -16,6 +12,15 @@ Fishnet : 구현한 Fishnet
 | train.py | 훈련 코드 |
 | test.py | 테스트 코드 |
 | model_result.csv | 테스트 출력 결과 |
+| 20230127_FishNet.pdf | paper review 및 코드 제작에 대한 ppt |
+
+
+## 사용 모델
+| *모델* | *설명* |
+|:-----------------:|:--------|
+|CNN | [Pytorch tutorial](https://tutorials.pytorch.kr/beginner/blitz/cifar10_tutorial.html)에서 제공된 간단한 CNN 모델  |
+|Bottleneck ResNet18 | 기존의 [Resnet18](https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L166) 의 basic block 대신 bottleneck block을 적용. identity Mappings in Deep Residual Networks의 bottleneck 으로 구조 변경  |
+|Fishnet | 구현한 Fishnet |
 
 ## train
 
@@ -47,9 +52,9 @@ python test.py
 * DataLoader
     * [How to Load, Pre-process and Visualize CIFAR-10 and CIFAR -100 datasets in Python](https://www.binarystudy.com/2021/09/how-to-load-preprocess-visualize-CIFAR-10-and-CIFAR-100.html)
     * [DATASET과 DATALOADER](https://tutorials.pytorch.kr/beginner/basics/data_tutorial.html)
-* [Pytorch 분류기(Classifier) 학습하기](https://tutorials.pytorch.kr/beginner/blitz/cifar10_tutorial.html)
-* [Pytorch ResNet](https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L108)
-* [senet.pytorch](https://github.com/moskomule/senet.pytorch/blob/8cb2669fec6fa344481726f9199aa611f08c3fbd/senet/se_resnet.py#L46)
-* [Image normalization](https://teddylee777.github.io/pytorch/torchvision-transform/)
-* [PCA Color Augmentation](https://github.com/albumentations-team/albumentations/blob/7e49d472b451c4f25ae74d1a67503c8b3313eaf0/albumentations/augmentations/functional.py#L1091)
-* [pytorch transforms 구조](https://pytorch.org/vision/stable/_modules/torchvision/transforms/transforms.html#Compose)
+* model
+    * [Pytorch 분류기(Classifier) 학습하기](https://tutorials.pytorch.kr/beginner/blitz/cifar10_tutorial.html)
+    * [Pytorch ResNet](https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py#L108)
+    * [senet.pytorch](https://github.com/moskomule/senet.pytorch/blob/8cb2669fec6fa344481726f9199aa611f08c3fbd/senet/se_resnet.py#L46)
+* augmentation
+    * [Image normalization](https://teddylee777.github.io/pytorch/torchvision-transform/)
